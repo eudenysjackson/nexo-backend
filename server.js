@@ -103,6 +103,14 @@ REGRAS OBRIGATÓRIAS:
 2. Se for uma fatura de cartão de crédito, extraia SOMENTE as compras/parcelas individuais.
 3. Se for print de conversa de WhatsApp/chat com valores financeiros, extraia os valores mencionados como transações.
 4. Se for extrato bancário, extraia cada movimentação (débitos como despesa, créditos como receita).
+5. Se for NOTA FISCAL / CUPOM FISCAL DE SUPERMERCADO / COMPRAS:
+   - Cada linha de item tem: CÓDIGO, DESCRIÇÃO, QTD, UN, VL.UNIT, VL.TOTAL
+   - Abaixo da descrição pode ter uma linha auxiliar com "QTD x VL.UNIT" (ex: "4,000 UN x 19,49")
+   - SEMPRE use o VL.TOTAL (valor já multiplicado pela quantidade) como "valor" de cada item. NUNCA use o VL.UNIT (preço unitário).
+   - Se houver linhas com QTD fracionada (ex: 1,114 KG x 21,49), o VL.TOTAL virá na mesma linha ou logo abaixo — use esse VL.TOTAL.
+   - NÃO inclua a linha final de "QTD. TOTAL DE ITENS", "VALOR TOTAL R$", "VALOR A PAGAR", "FORMA DE PAGAMENTO", etc.
+   - NÃO duplique itens lendo a mesma linha duas vezes.
+   - A SOMA de todos os "valor" deve ser IGUAL ao total da nota. Se você perceber discrepância, revise os valores extraídos.
 
 FORMATO DE SAÍDA (JSON array, sem texto extra):
 [{
