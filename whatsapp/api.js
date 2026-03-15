@@ -1,7 +1,7 @@
 // ========== WHATSAPP CLOUD API - ENVIO DE MENSAGENS ==========
 const axios = require('axios');
 
-const WHATSAPP_API_URL = 'https://graph.facebook.com/v21.0';
+const WHATSAPP_API_URL = 'https://graph.facebook.com/v22.0';
 
 function getHeaders() {
     return {
