@@ -268,12 +268,6 @@ async function processarComIA(texto, arquivo, res) {
     res.json(transacoes);
 }
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Nexo Backend v2 rodando na porta ${PORT} 🚀`);
-    console.log("Formatos suportados: PDF, Imagem, CSV, OFX, Print de WhatsApp");
-});
-
 // ========== WHATSAPP WEBHOOK ==========
 
 // Verificação do webhook (Meta envia GET para validar)
@@ -335,4 +329,10 @@ app.post('/webhook/whatsapp', async (req, res) => {
     } catch (error) {
         console.error('🔴 Erro no webhook WhatsApp:', error.message || error);
     }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Nexo Backend v2 rodando na porta ${PORT} 🚀`);
+    console.log("Formatos suportados: PDF, Imagem, CSV, OFX, Print de WhatsApp");
 });
