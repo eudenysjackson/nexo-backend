@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { processarMensagem } = require('./whatsapp/processador');
 
 const app = express();
 app.use(cors());
@@ -271,4 +272,67 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Nexo Backend v2 rodando na porta ${PORT} 🚀`);
     console.log("Formatos suportados: PDF, Imagem, CSV, OFX, Print de WhatsApp");
+});
+
+// ========== WHATSAPP WEBHOOK ==========
+
+// Verificação do webhook (Meta envia GET para validar)
+app.get('/webhook/whatsapp', (req, res) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+        console.log('✅ WhatsApp webhook verificado!');
+        return res.status(200).send(challenge);
+    }
+    res.sendStatus(403);
+});
+
+// Recebe mensagens do WhatsApp
+app.post('/webhook/whatsapp', async (req, res) => {
+    // Responde 200 imediatamente (Meta exige resposta rápida)
+    res.sendStatus(200);
+
+    try {
+        const body = req.body;
+        if (!body?.entry?.[0]?.changes?.[0]?.value?.messages) return;
+
+        const value = body.entry[0].changes[0].value;
+        const msg = value.messages[0];
+        const telefone = msg.from; // número do remetente
+
+        // Ignora mensagens de status/notificações
+        if (msg.type === 'ephemeral' || !msg) return;
+
+        let texto = null;
+        let midia = null;
+
+        switch (msg.type) {
+            case 'text':
+                texto = msg.text.body;
+                break;
+            case 'interactive':
+                // Resposta de botão ou lista
+                texto = msg.interactive?.button_reply?.title ||
+                        msg.interactive?.list_reply?.title ||
+                        msg.interactive?.button_reply?.id || '';
+                break;
+            case 'image':
+                midia = { id: msg.image.id, mime: msg.image.mime_type };
+                texto = msg.image.caption || null;
+                break;
+            case 'document':
+                midia = { id: msg.document.id, mime: msg.document.mime_type };
+                texto = msg.document.caption || null;
+                break;
+            default:
+                return; // ignora áudio, sticker, etc. por enquanto
+        }
+
+        await processarMensagem(telefone, msg.id, texto, midia);
+
+    } catch (error) {
+        console.error('🔴 Erro no webhook WhatsApp:', error.message || error);
+    }
 });
