@@ -2,14 +2,26 @@
 const admin = require('firebase-admin');
 
 // Inicializa com credenciais do ambiente (service account JSON)
-if (!admin.apps.length) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-    });
+let db = null;
+try {
+    if (!admin.apps.length) {
+        const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+        if (raw && raw !== '{}') {
+            const serviceAccount = JSON.parse(raw);
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount)
+            });
+            db = admin.firestore();
+            console.log('✅ Firebase Admin inicializado');
+        } else {
+            console.warn('⚠️ FIREBASE_SERVICE_ACCOUNT não configurado — WhatsApp desativado');
+        }
+    } else {
+        db = admin.firestore();
+    }
+} catch (e) {
+    console.error('🔴 Erro ao inicializar Firebase Admin:', e.message);
 }
-
-const db = admin.firestore();
 
 // ========== FUNÇÕES DE BUSCA DE USUÁRIO ==========
 
